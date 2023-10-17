@@ -1,51 +1,61 @@
 package com.w4.lab402.controller.impl;
 
+import com.w4.lab402.controller.dto.EmployeeDepartmentDTO;
+import com.w4.lab402.controller.dto.EmployeeStatusDTO;
 import com.w4.lab402.controller.interfaces.IEmployeeController;
 import com.w4.lab402.model.Employee;
 import com.w4.lab402.model.EmployeeStatus;
-import com.w4.lab402.model.Patient;
 import com.w4.lab402.repository.EmployeeRepository;
-import com.w4.lab402.repository.PatientRepository;
+import com.w4.lab402.service.interfaces.IEmployeeService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
 public class EmployeeController implements IEmployeeController {
+    @Autowired
+    IEmployeeService employeeService;
 
     @Autowired
     EmployeeRepository employeeRepository;
 
     @GetMapping("/employees")
     public List<Employee> getAllEmployees() {
-        List<Employee> employeeList = employeeRepository.findAll();
-        if (employeeList.isEmpty()) return null;
-        return employeeList;
+        return employeeService.getAllEmployees();
     }
-
     @GetMapping("/employees/{id}")
     public Employee getEmployeeById(@PathVariable(name = "id") Integer id) {
-        Optional<Employee> employeeOptional = employeeRepository.findById(id);
-        if (employeeOptional.isEmpty()) return null;
-        return employeeOptional.get();
+        return employeeService.getEmployeeById(id);
     }
     @GetMapping("/employees/status/{status}")
     public List<Employee> getAllEmployeesByStatus(@PathVariable(name = "status") EmployeeStatus status) {
-        List<Employee> employeeList = employeeRepository.getAllEmployeesByStatus(status);
-        if (employeeList.isEmpty()) return null;
-        return employeeList;
+        return employeeService.getAllEmployeesByStatus(status);
     }
     @GetMapping("/employees/department/{department}")
     public List<Employee> getAllEmployeesByDepartment(@PathVariable(name = "department") String department) {
-        List<Employee> employeeList = employeeRepository.getAllEmployeesByDepartment(department);
-        if (employeeList.isEmpty()) return null;
-        return employeeList;
+        return employeeService.getAllEmployeesByDepartment(department);
+    }
+
+    @PostMapping("/employees")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void saveEmployee(@RequestBody @Valid Employee employee) {
+        employeeRepository.save(employee);
+    }
+
+    @PatchMapping("/employees/department/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateEmployeeDepartment(@RequestBody @Valid EmployeeDepartmentDTO employeeDepartmentDTO, @PathVariable Integer id) {
+        employeeService.updateEmployeeDepartment(employeeDepartmentDTO.getDepartment(), id);
+    }
+
+    @PatchMapping("/employees/status/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateEmployeeStatus(@RequestBody EmployeeStatusDTO employeeStatusDTO, @PathVariable Integer id) {
+        employeeService.updateEmployeeStatus(employeeStatusDTO.getStatus(), id);
     }
 
 }
